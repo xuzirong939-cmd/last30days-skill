@@ -7,8 +7,8 @@ Always inspect these before changing market-desk behavior:
 - `/Users/araki/Documents/Codex/2026-07-03/zhe/agent_tools_integrated`
   - Current branch observed: `codex/integrated-daily-market-desk`.
   - Primary Daily Market Desk and PushPlus repo.
-  - Key files: `00_System/DAILY_MARKET_DESK.md`, `00_System/FULL_MARKET_RESEARCH_PROTOCOL.md`, `00_System/PUBLIC_PRIVATE_BOUNDARY.md`, `00_System/EXECUTION_GATE.md`, `AGENTS.md`, `scripts/run_premarket_daily.py`, `scripts/run_intraday_daily.py`, `scripts/run_postclose_daily.py`, `scripts/run_position_health_push.py`, `scripts/mobile_push_card.py`, `scripts/position_health_push_card.py`, `scripts/daily_push_report.py`, `12_Notifications/pushplus.py`, `14_Broker/futu_readonly/README.md`, `14_Broker/ibkr_readonly/ibkr_snapshot.py`.
-  - Tests to look for: `tests/test_mobile_push_card.py`, `tests/test_pushplus_safety_gate.py`, `tests/test_position_health_push_card.py`, `tests/test_portfolio_health.py`, `tests/test_public_private_boundary.py`, `tests/test_full_market_protocol.py`, `tests/test_premarket_generation.py`, `tests/test_postclose_generation.py`, `tests/test_ibkr_snapshot.py`.
+  - Key files: `00_System/DAILY_MARKET_DESK.md`, `00_System/FULL_MARKET_RESEARCH_PROTOCOL.md`, `00_System/PUBLIC_PRIVATE_BOUNDARY.md`, `00_System/EXECUTION_GATE.md`, `AGENTS.md`, `scripts/run_last30days_market_push.py`, `scripts/run_premarket_daily.py`, `scripts/run_intraday_daily.py`, `scripts/run_postclose_daily.py`, `scripts/run_position_health_push.py`, `scripts/mobile_push_card.py`, `scripts/position_health_push_card.py`, `scripts/daily_push_report.py`, `12_Notifications/pushplus.py`, `14_Broker/futu_readonly/README.md`, `14_Broker/ibkr_readonly/ibkr_snapshot.py`.
+  - Tests to look for: `tests/test_last30days_market_push.py`, `tests/test_mobile_push_card.py`, `tests/test_pushplus_safety_gate.py`, `tests/test_position_health_push_card.py`, `tests/test_portfolio_health.py`, `tests/test_public_private_boundary.py`, `tests/test_full_market_protocol.py`, `tests/test_premarket_generation.py`, `tests/test_postclose_generation.py`, `tests/test_ibkr_snapshot.py`.
 - `/Users/araki/Documents/Codex/2026-07-03/codex-task-investment-os-trading-system`
   - Current branch observed: `feature/execution-feedback-kernel-v1`.
   - Durable execution-feedback and broker guard material.
@@ -52,6 +52,15 @@ git -C /path/to/repo remote -v
 ## last30days Engine
 
 Generate and pass a query plan. Do not run the engine with only one broad topic string; that falls back to weak deterministic planning.
+
+For Araki's local scheduled PushPlus workflow, prefer the Daily Market Desk runner when present:
+
+```bash
+cd /Users/araki/Documents/Codex/2026-07-03/zhe/agent_tools_integrated
+python3 scripts/run_last30days_market_push.py --push true
+```
+
+That runner generates this plan, saves the complete raw scan under `02_Market/last30days_market_scans/`, and sends only a compact Chinese mobile card. Keep the Codex automation schedule, PushPlus token, raw generated scans, logs, and any broker/account context local-only. The deterministic runner, tests, and runbook can live in GitHub; private schedules and secrets should not.
 
 From this skill directory:
 
