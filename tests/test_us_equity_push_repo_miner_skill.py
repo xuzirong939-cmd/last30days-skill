@@ -29,6 +29,27 @@ class TestUsEquityPushRepoMinerSkill(unittest.TestCase):
         self.assertIn("/Users/araki/Developer/report-system", text)
         self.assertIn("Hard rejects", text)
 
+    def test_required_search_excludes_noisy_or_sensitive_paths(self) -> None:
+        text = (SKILL_ROOT / "references" / "us-equity-push-workflow.md").read_text(encoding="utf-8")
+
+        for pattern in [
+            "--glob '!**/.git/**'",
+            "--glob '!**/.venv/**'",
+            "--glob '!**/venv/**'",
+            "--glob '!**/private/**'",
+            "--glob '!**/logs/**'",
+            "--glob '!**/reports_archive/**'",
+            "--glob '!**/memory*/**'",
+            "--glob '!**/*.bak*'",
+        ]:
+            self.assertIn(pattern, text)
+
+    def test_last30days_engine_path_has_skill_dir_and_repo_root_forms(self) -> None:
+        text = (SKILL_ROOT / "references" / "us-equity-push-workflow.md").read_text(encoding="utf-8")
+
+        self.assertIn("python3 ../last30days/scripts/last30days.py", text)
+        self.assertIn("python3 skills/last30days/scripts/last30days.py", text)
+
 
 if __name__ == "__main__":
     unittest.main()
