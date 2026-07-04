@@ -26,7 +26,21 @@ Always inspect these before recommending external code:
 Use `rg` before external discovery:
 
 ```bash
-rg -n "PushPlus|pushplus|wx_push|IBKR|Interactive Brokers|Futu|OpenD|Daily Market Desk|premarket|postclose|position_health|portfolio_health|mobile_push_card|watchlist|market traffic|Execution Gate" /Users/araki/Documents/Codex /Users/araki/ibkr-grid /Users/araki/Developer/report-system
+rg -n "PushPlus|pushplus|wx_push|IBKR|Interactive Brokers|Futu|OpenD|Daily Market Desk|premarket|postclose|position_health|portfolio_health|mobile_push_card|watchlist|market traffic|Execution Gate" \
+  /Users/araki/Documents/Codex /Users/araki/ibkr-grid /Users/araki/Developer/report-system \
+  --glob '!**/.git/**' \
+  --glob '!**/.venv/**' \
+  --glob '!**/venv/**' \
+  --glob '!**/__pycache__/**' \
+  --glob '!**/private/**' \
+  --glob '!**/logs/**' \
+  --glob '!**/reports/**' \
+  --glob '!**/reports_archive/**' \
+  --glob '!**/docs/observation_log/**' \
+  --glob '!**/memory*/**' \
+  --glob '!**/skills/**/analysis/**' \
+  --glob '!**/skills/**/references/articles.md' \
+  --glob '!**/*.bak*'
 ```
 
 Also list repo state:
@@ -61,6 +75,8 @@ When using the adjacent last30days engine for social/web recency, run it from th
 ```bash
 python3 ../last30days/scripts/last30days.py "IBKR PushPlus US stock alert GitHub" --search=github,hackernews,reddit,web,stocktwits --days=90 --emit=compact
 ```
+
+If running from the repository root instead of the new skill directory, use `python3 skills/last30days/scripts/last30days.py ...`.
 
 If the topic is a named product, repo, author, or company, generate a query plan first and pass it via `--plan`, following the original last30days contract.
 
