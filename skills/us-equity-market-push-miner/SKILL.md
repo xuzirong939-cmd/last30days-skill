@@ -21,6 +21,7 @@ Read [references/us-equity-market-scan-workflow.md](references/us-equity-market-
 2. Run full-market discovery.
    - Use the original last30days engine for public signal mining across Reddit, X, YouTube, Hacker News, Polymarket, GitHub, and grounded web when available.
    - Use multiple query packs: macro/liquidity, rates/FX/credit, indexes/breadth, sectors/factors, AI/semis, major single-stock narratives, options/volatility, retail/social heat, and policy/geopolitics.
+   - Unless the user explicitly asks only to edit, explain, or avoid running tools, execute the complete scan; do not stop at a proposed plan.
 3. Separate signal from action.
    - Public/social sources can change attention, narrative, or watchlist priority.
    - Ticker-level action requires fresh IBKR account truth plus the existing Execution Gate.
@@ -31,6 +32,7 @@ Read [references/us-equity-market-scan-workflow.md](references/us-equity-market-
 5. Deliver or edit directly.
    - If asked to change the skill/plugin, patch this skill and tests.
    - If asked to run a scan, return the scan result in the output shape below and cite live public sources when used.
+   - If the local Daily Market Desk repo is available, prefer its `scripts/run_last30days_market_push.py` runner for scheduled PushPlus scans because it saves the full report and only sends a safe mobile card.
 
 ## Output Shape
 
