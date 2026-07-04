@@ -1,14 +1,14 @@
 {
   "name": "last30days",
   "version": "3.10.0",
-  "description": "Research any topic across Reddit, X, YouTube, TikTok, Instagram, Hacker News, Polymarket, GitHub, and 5+ more sources. AI agent scores by upvotes, likes, and real money - not editors.",
+  "description": "Research recent public signals and mine repositories for US equity market-desk, IBKR, Futu, PushPlus, and mobile stock-alert workflows.",
   "author": {
     "name": "Matt Van Horn",
     "email": "mvanhorn@gmail.com",
     "url": "https://github.com/mvanhorn"
   },
-  "homepage": "https://github.com/mvanhorn/last30days-skill",
-  "repository": "https://github.com/mvanhorn/last30days-skill",
+  "homepage": "https://github.com/xuzirong939-cmd/last30days-skill",
+  "repository": "https://github.com/xuzirong939-cmd/last30days-skill",
   "license": "MIT",
   "keywords": [
     "competitor research",
@@ -25,6 +25,12 @@
     "perplexity",
     "threads",
     "pinterest",
-    "hacker-news"
+    "hacker-news",
+    "us-equities",
+    "ibkr",
+    "futu",
+    "pushplus",
+    "market-desk",
+    "stock-alerts"
   ]
 }

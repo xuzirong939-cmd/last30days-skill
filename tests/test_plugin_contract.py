@@ -39,7 +39,7 @@ class TestPluginContract(unittest.TestCase):
         self.assertEqual(
             {
                 "source": "url",
-                "url": "https://github.com/mvanhorn/last30days-skill.git",
+                "url": "https://github.com/xuzirong939-cmd/last30days-skill.git",
             },
             plugin["source"],
         )

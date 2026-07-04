@@ -1,14 +1,14 @@
 {
   "name": "last30days",
   "version": "3.10.0",
-  "description": "Research any topic across Reddit, X, YouTube, TikTok, Instagram, Hacker News, Polymarket, GitHub, and the web.",
+  "description": "Research recent public signals and mine repositories for US equity market-desk, IBKR, Futu, PushPlus, and mobile stock-alert workflows.",
   "author": {
     "name": "Matt Van Horn",
     "email": "mvanhorn@gmail.com",
     "url": "https://github.com/mvanhorn"
   },
-  "homepage": "https://github.com/mvanhorn/last30days-skill",
-  "repository": "https://github.com/mvanhorn/last30days-skill",
+  "homepage": "https://github.com/xuzirong939-cmd/last30days-skill",
+  "repository": "https://github.com/xuzirong939-cmd/last30days-skill",
   "license": "MIT",
   "keywords": [
     "competitor research",
@@ -25,13 +25,19 @@
     "perplexity",
     "threads",
     "pinterest",
-    "hacker-news"
+    "hacker-news",
+    "us-equities",
+    "ibkr",
+    "futu",
+    "pushplus",
+    "market-desk",
+    "stock-alerts"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "last30days",
-    "shortDescription": "Research what people are saying about a topic now.",
-    "longDescription": "last30days adds a Codex skill for researching any topic based on recent discussion and engagement signals across Reddit, X, YouTube, TikTok, Instagram, Hacker News, Polymarket, GitHub, and the web.",
+    "shortDescription": "Mine US stock push repos and recent signals.",
+    "longDescription": "last30days now includes a Codex skill for finding and scoring GitHub or local repositories that can improve US equity market-desk automation, IBKR/Futu data pipelines, PushPlus/WeChat mobile alerts, and position-health reports.",
     "developerName": "Matt Van Horn",
     "category": "Research",
     "capabilities": [
@@ -39,11 +45,11 @@
       "Read",
       "Write"
     ],
-    "websiteURL": "https://github.com/mvanhorn/last30days-skill",
+    "websiteURL": "https://github.com/xuzirong939-cmd/last30days-skill",
     "defaultPrompt": [
-      "TikTok shop trends",
-      "Codex vs Cursor",
-      "best travel credit cards"
+      "Use $us-equity-push-repo-miner to find GitHub repos that can improve my US stock PushPlus workflow",
+      "Mine IBKR and Futu market-desk alert repositories and tell me which ones to adapt",
+      "Find recent US equity watchlist and premarket/postclose report repos"
     ],
     "brandColor": "#6F42C1"
   }
