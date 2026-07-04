@@ -1,8 +1,0 @@
-interface:
-  display_name: "US Equity Push Repo Miner"
-  short_description: "Find and score US stock push repos."
-  default_prompt: "Use $us-equity-push-repo-miner to find GitHub repos that can improve my US stock PushPlus market-desk workflow."
-  brand_color: "#0F766E"
-
-policy:
-  allow_implicit_invocation: true
