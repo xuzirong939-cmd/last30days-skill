@@ -15,9 +15,10 @@
 **An AI agent-led search engine scored by upvotes, likes, and real money - not editors.**
 
 **Araki fork:** this repo keeps the upstream `/last30days` engine and adds
-`skills/us-equity-push-repo-miner`, a Codex skill for mining GitHub and local
-repositories that can improve US equity market-desk automation, IBKR/Futu data
-pipelines, PushPlus/WeChat mobile alerts, and position-health reports.
+`skills/us-equity-market-push-miner`, a Codex skill for mining full-market US
+equity signals across Reddit, X-like social sources, YouTube, Hacker News,
+Polymarket, GitHub, and the web, then shaping the result into Daily
+Market Desk and PushPlus mobile action cards.
 Install this fork with `npx skills add xuzirong939-cmd/last30days-skill -g -a codex`.
 
 This README tracks the current v3 pipeline. The runtime skill spec lives in [skills/last30days/SKILL.md](skills/last30days/SKILL.md), which is the source of truth for the latest command and setup behavior.
