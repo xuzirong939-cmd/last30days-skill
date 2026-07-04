@@ -1,0 +1,8 @@
+interface:
+  display_name: "US Equity Market Push Miner"
+  short_description: "Mine full-market US equity signals for PushPlus."
+  default_prompt: "Use $us-equity-market-push-miner to scan full-market US equity signals across Reddit, X, YouTube, HN, Polymarket, GitHub, and the web, then shape a PushPlus action card."
+  brand_color: "#0F766E"
+
+policy:
+  allow_implicit_invocation: true
