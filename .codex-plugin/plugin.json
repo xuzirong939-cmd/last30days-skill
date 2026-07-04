@@ -1,7 +1,7 @@
 {
   "name": "last30days",
   "version": "3.10.0",
-  "description": "Research recent public signals and mine repositories for US equity market-desk, IBKR, Futu, PushPlus, and mobile stock-alert workflows.",
+  "description": "Research recent public signals and mine full-market US equity narratives for Daily Market Desk and PushPlus workflows.",
   "author": {
     "name": "Matt Van Horn",
     "email": "mvanhorn@gmail.com",
@@ -36,8 +36,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "last30days",
-    "shortDescription": "Mine US stock push repos and recent signals.",
-    "longDescription": "last30days now includes a Codex skill for finding and scoring GitHub or local repositories that can improve US equity market-desk automation, IBKR/Futu data pipelines, PushPlus/WeChat mobile alerts, and position-health reports.",
+    "shortDescription": "Mine full-market US equity signals.",
+    "longDescription": "last30days now includes a Codex skill for scanning full-market US equity signals across Reddit, X-like social sources, YouTube, Hacker News, Polymarket, GitHub, and the web, then shaping the result into Daily Market Desk and PushPlus mobile action cards.",
     "developerName": "Matt Van Horn",
     "category": "Research",
     "capabilities": [
@@ -47,9 +47,9 @@
     ],
     "websiteURL": "https://github.com/xuzirong939-cmd/last30days-skill",
     "defaultPrompt": [
-      "Use $us-equity-push-repo-miner to find GitHub repos that can improve my US stock PushPlus workflow",
-      "Mine IBKR and Futu market-desk alert repositories and tell me which ones to adapt",
-      "Find recent US equity watchlist and premarket/postclose report repos"
+      "Use $us-equity-market-push-miner to scan full-market US equity signals and draft a PushPlus action card",
+      "Mine Reddit, X, YouTube, HN, Polymarket, GitHub, and web signals for today's US market desk",
+      "Run a premarket US equity water-temperature scan and separate allowed from blocked actions"
     ],
     "brandColor": "#6F42C1"
   }
