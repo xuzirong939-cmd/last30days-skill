@@ -40,6 +40,7 @@ class TestUsEquityMarketPushMinerSkill(unittest.TestCase):
         self.assertIn("Avoid broad `US equities`-only search strings", text)
         self.assertIn("Retail/social", text)
         self.assertIn("PushPlus-facing language", text)
+        self.assertIn("run_last30days_market_push.py", text)
 
     def test_workflow_preserves_local_market_desk_gates(self) -> None:
         text = (SKILL_ROOT / "references" / "us-equity-market-scan-workflow.md").read_text(encoding="utf-8")
@@ -50,6 +51,7 @@ class TestUsEquityMarketPushMinerSkill(unittest.TestCase):
         self.assertIn("IBKR: private account truth", text)
         self.assertIn("Futu OpenD: read-only", text)
         self.assertIn("Hard rejects", text)
+        self.assertIn("scheduled PushPlus workflow", text)
 
     def test_required_search_excludes_noisy_or_sensitive_paths(self) -> None:
         text = (SKILL_ROOT / "references" / "us-equity-market-scan-workflow.md").read_text(encoding="utf-8")
