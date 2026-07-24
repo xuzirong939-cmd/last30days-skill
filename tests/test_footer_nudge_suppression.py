@@ -37,6 +37,7 @@ class FooterNudgeSuppressionTests(unittest.TestCase):
             # (otherwise the "x" promo wins and the BRAVE_API_KEY string never
             # appears).
             "XAI_API_KEY": "test-stub",
+            "LAST30DAYS_PAID_PROVIDERS": "xai",
         }
         # Strip any grounded-web keys the host might have so the promo path
         # triggers deterministically in mock + no-backend. Also strip X cookie

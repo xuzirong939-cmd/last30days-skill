@@ -11,6 +11,7 @@ import os
 import re
 import shutil
 import subprocess
+import tempfile
 import time
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
@@ -471,6 +472,59 @@ def write_setup_config(env_path: Path, from_browser: str | None = None) -> bool:
         return False
 
 
+def _merge_paid_provider_allowlist(env_path: Path, provider: str) -> bool:
+    """Atomically add a provider to the explicit paid-provider allowlist."""
+    from . import env as env_mod
+
+    try:
+        existing = env_path.read_text(encoding="utf-8") if env_path.exists() else ""
+        lines = existing.splitlines()
+        target_index: int | None = None
+        raw_allowlist = ""
+        for index, line in enumerate(lines):
+            stripped = line.strip()
+            if stripped and not stripped.startswith("#") and "=" in stripped:
+                key, _, value = stripped.partition("=")
+                if key.strip() == env_mod.PAID_PROVIDERS_ENV:
+                    target_index = index
+                    raw_allowlist = value.strip().strip("\"'")
+                    break
+
+        allowed, unknown = env_mod.parse_paid_provider_allowlist(raw_allowlist)
+        if provider in allowed:
+            return True
+        allowed.add(provider)
+        updated_line = (
+            f"{env_mod.PAID_PROVIDERS_ENV}="
+            + ",".join(sorted(allowed | unknown))
+        )
+        if target_index is None:
+            lines.append(updated_line)
+        else:
+            lines[target_index] = updated_line
+        updated = "\n".join(lines) + "\n"
+
+        fd, temporary = tempfile.mkstemp(
+            prefix=f".{env_path.name}.",
+            suffix=".tmp",
+            dir=env_path.parent,
+        )
+        try:
+            os.chmod(temporary, 0o600)
+            with os.fdopen(fd, "w", encoding="utf-8") as handle:
+                handle.write(updated)
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(temporary, env_path)
+        finally:
+            if os.path.exists(temporary):
+                os.unlink(temporary)
+        return True
+    except OSError as exc:
+        logger.error("Failed to update paid-provider allowlist in %s: %s", env_path, exc)
+        return False
+
+
 def write_api_key(env_path: Path, api_key: str, key_name: str = "SCRAPECREATORS_API_KEY") -> bool:
     """Append an API key to the .env file as a 0o600 secret.
 
@@ -496,19 +550,30 @@ def write_api_key(env_path: Path, api_key: str, key_name: str = "SCRAPECREATORS_
         env_path.parent.mkdir(parents=True, exist_ok=True)
 
         existing_content = ""
+        key_already_present = False
         if env_path.exists():
             existing_content = env_path.read_text(encoding="utf-8")
             for line in existing_content.splitlines():
                 stripped = line.strip()
                 if stripped and not stripped.startswith("#") and "=" in stripped:
                     if stripped.split("=", 1)[0].strip() == key_name:
-                        return True  # Already configured; do not duplicate
+                        key_already_present = True
+                        break
 
-        line = f"{key_name}={_format_env_value(api_key)}\n"
-        with _open_secret_append(env_path) as f:
-            if existing_content and not existing_content.endswith("\n"):
-                f.write("\n")
-            f.write(line)
+        if not key_already_present:
+            line = f"{key_name}={_format_env_value(api_key)}\n"
+            with _open_secret_append(env_path) as f:
+                if existing_content and not existing_content.endswith("\n"):
+                    f.write("\n")
+                f.write(line)
+
+        from . import env as env_mod
+
+        provider = env_mod.paid_provider_for_key(key_name)
+        if provider == "hosted":
+            provider = None
+        if provider and not _merge_paid_provider_allowlist(env_path, provider):
+            return False
 
         return True
 

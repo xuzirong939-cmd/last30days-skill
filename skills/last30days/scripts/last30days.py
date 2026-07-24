@@ -47,7 +47,7 @@ if os.name == "nt":
 SCRIPT_DIR = Path(__file__).parent.resolve()
 sys.path.insert(0, str(SCRIPT_DIR))
 
-from lib import dates, env, html_render, permission_preflight, pipeline, render, schema, ui
+from lib import dates, env, html_render, permission_preflight, pipeline, quality, render, schema, state, ui
 
 _child_pids: set[int] = set()
 _child_pids_lock = threading.Lock()
@@ -706,23 +706,29 @@ def _write_last_run(
     topic: str,
     report: "schema.Report",
     entity_reports: list[tuple[str, schema.Report]] | None = None,
-) -> None:
+) -> bool:
     try:
         if env.CONFIG_DIR is None:
-            return
+            return False
         target = env.CONFIG_DIR
         target.mkdir(parents=True, exist_ok=True)
         counts = {source: len(items) for source, items in report.items_by_source.items()}
+        cached_reports = entity_reports or [(report.topic, report)]
+        quality_status, quality_reasons = quality.assess_reports(
+            cached_report for _label, cached_report in cached_reports
+        )
         payload = {
+            "schema": state.CURRENT_STATE_VERSION,
             "topic": topic,
             "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             "sources": counts,
             "total": sum(counts.values()),
             "report_cache": str(target / "last-report.json"),
+            "report_cache_schema": REPORT_CACHE_VERSION,
             "comparison": bool(entity_reports),
+            "quality_status": quality_status,
+            "quality_reasons": quality_reasons,
         }
-        (target / "last-run.json").write_text(json.dumps(payload, indent=2))
-        cached_reports = entity_reports or [(report.topic, report)]
         cache_payload = {
             "schema": REPORT_CACHE_VERSION,
             "topic": topic,
@@ -733,9 +739,16 @@ def _write_last_run(
                 for label, cached_report in cached_reports
             ],
         }
-        (target / "last-report.json").write_text(json.dumps(cache_payload, indent=2))
-    except Exception:
-        pass
+        # The cache and compatibility view are committed first. current.json
+        # is the authoritative commit marker and is atomically replaced last,
+        # so readers never observe a partially serialized current state.
+        state.atomic_write_json(target / "last-report.json", cache_payload)
+        state.atomic_write_json(target / "last-run.json", payload)
+        state.atomic_write_json(target / "current.json", payload)
+        return True
+    except Exception as exc:
+        sys.stderr.write(f"[last30days] WARNING: could not persist current state: {exc}\n")
+        return False
 
 
 def _load_last_report_cache(
@@ -1076,6 +1089,7 @@ def main() -> int:
         and not args.mock
         and os.environ.get("LAST30DAYS_API_KEY")
         and os.environ.get("LAST30DAYS_API_BASE")
+        and env.paid_provider_allowed(config, "hosted")
     ):
         from lib import hosted
         depth = "deep" if args.deep else "quick" if args.quick else "default"

@@ -32,7 +32,11 @@ def test_untrusted_project_config_is_ignored_by_default(tmp_path, monkeypatch):
 
 def test_project_config_loads_with_global_trust_signal(tmp_path, monkeypatch):
     global_env = tmp_path / "global.env"
-    global_env.write_text("LAST30DAYS_TRUST_PROJECT_CONFIG=1\n", encoding="utf-8")
+    global_env.write_text(
+        "LAST30DAYS_TRUST_PROJECT_CONFIG=1\n"
+        "LAST30DAYS_PAID_PROVIDERS=xai\n",
+        encoding="utf-8",
+    )
     project_dir = tmp_path / "project"
     project_env = project_dir / ".claude" / "last30days.env"
     project_env.parent.mkdir(parents=True)
@@ -110,7 +114,10 @@ def test_project_config_discovery_stops_at_git_root(tmp_path, monkeypatch):
 
 def test_global_config_loads_when_project_config_is_untrusted(tmp_path, monkeypatch):
     global_env = tmp_path / "global.env"
-    global_env.write_text("XAI_API_KEY=global\n", encoding="utf-8")
+    global_env.write_text(
+        "XAI_API_KEY=global\nLAST30DAYS_PAID_PROVIDERS=xai\n",
+        encoding="utf-8",
+    )
     project_dir = tmp_path / "project"
     project_env = project_dir / ".claude" / "last30days.env"
     project_env.parent.mkdir(parents=True)
@@ -173,6 +180,7 @@ def test_diagnose_reports_ignored_untrusted_endpoint_override(tmp_path, monkeypa
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(env, "CONFIG_FILE", None)
     monkeypatch.setenv("OPENAI_API_KEY", "sk-global")
+    monkeypatch.setenv("LAST30DAYS_PAID_PROVIDERS", "openai")
     monkeypatch.delenv("LAST30DAYS_TRUST_PROJECT_CONFIG", raising=False)
 
     keychain, pass_store = _neutral_secret_sources()

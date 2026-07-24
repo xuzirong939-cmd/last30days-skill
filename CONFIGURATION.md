@@ -53,7 +53,14 @@ The engine's `.env` reader doesn't expand `$HOME` — only the tilde, via `Path(
 
 The footer line `📎 Raw results saved to ${LAST30DAYS_MEMORY_DIR:-$HOME/Documents/Last30Days}/<slug>-raw.md` is the canonical pointer; if it shows backslashes on Windows update past v3.1.1.
 
-HTML follow-up renders also write a structured `last-report.json` cache beside `last-run.json` so `--emit=html --synthesis-file` can reuse the report metadata/footer without fetching sources again. Reuse is intentionally short-lived: `LAST30DAYS_REPORT_CACHE_TTL_SECONDS` defaults to `3600` (one hour). Set it to another integer number of seconds to tune the window, or `0` to disable report-cache reuse.
+Successful runs atomically replace an authoritative `current.json` commit
+marker with schema `last30days-current/v1`. It records one of the shared
+top-level quality states `PASS`, `WARN`, `FAIL`, `BLOCKED`, or `DATA_PENDING`
+plus machine-readable reasons. Completed reports currently commit as `PASS` or
+`WARN`; source-level health strings remain separate. `last-run.json` is retained
+as an atomic compatibility view, and hooks prefer `current.json`.
+
+HTML follow-up renders also atomically write a structured `last-report.json` cache beside these state files so `--emit=html --synthesis-file` can reuse the report metadata/footer without fetching sources again. The cache and compatibility view are written before `current.json`, making the latter the final commit marker. Reuse is intentionally short-lived: `LAST30DAYS_REPORT_CACHE_TTL_SECONDS` defaults to `3600` (one hour). Set it to another integer number of seconds to tune the window, or `0` to disable report-cache reuse.
 
 ---
 
@@ -85,7 +92,29 @@ Override the global location with `LAST30DAYS_CONFIG_DIR=/path` (or `LAST30DAYS_
 
 The project-scoped file is useful for **intentional per-client setups**: drop a `.claude/last30days.env` into each client folder (`SCRAPECREATORS_API_KEY`, `INCLUDE_SOURCES`, `LAST30DAYS_MEMORY_DIR`, `BSKY_HANDLE`, etc), then opt in with `LAST30DAYS_TRUST_PROJECT_CONFIG=1` from your shell or `~/.config/last30days/.env`. Folder-mode hosts such as Codex desktop do not trust hidden project config by default, and discovery stops at the git root so unrelated parent folders cannot silently influence runs.
 
-**`LAST30DAYS_API_KEY`** + **`LAST30DAYS_API_BASE`** - optional remote-API backend. Set BOTH to route research through a remote API endpoint instead of running the local sources: `LAST30DAYS_API_BASE` is the endpoint (there is no built-in default), and `LAST30DAYS_API_KEY` is the bearer key for it. When both are set (and `--mock` is not passed), the engine submits the topic to that endpoint, polls with progress on stderr, and prints the server's report; none of the per-source keys below are used for that run. Leave either unset to run local sources exactly as normal. Unlike the other keys here, these two are read only from the **process environment** (export them in your shell or host config) - they are deliberately not loaded from the `.env` files above, so a project-scoped `.env` can never silently redirect research to a remote endpoint.
+**`LAST30DAYS_API_KEY`** + **`LAST30DAYS_API_BASE`** - optional remote-API backend. Set BOTH and explicitly allowlist `hosted` to route research through a remote API endpoint instead of running the local sources: `LAST30DAYS_API_BASE` is the endpoint (there is no built-in default), and `LAST30DAYS_API_KEY` is the bearer key for it. When all three gates are satisfied (and `--mock` is not passed), the engine submits the topic to that endpoint, polls with progress on stderr, and prints the server's report; none of the per-source keys below are used for that run. Leave either variable unset, or omit `hosted` from the allowlist, to run local sources exactly as normal. Unlike the other keys here, these two are read only from the **process environment** (export them in your shell or host config) - they are deliberately not loaded from the `.env` files above, so a project-scoped `.env` can never silently redirect research to a remote endpoint.
+
+### Explicit paid-provider allowlist
+
+Saved credentials do not authorize spending by themselves. Billable or
+quota-metered providers are inert until their canonical name appears in the
+comma-separated `LAST30DAYS_PAID_PROVIDERS` allowlist:
+
+```bash
+LAST30DAYS_PAID_PROVIDERS=scrapecreators,openai,xai
+```
+
+Supported names are `apify`, `brave`, `exa`, `google`, `groq`, `hosted`,
+`openai`, `openrouter`, `parallel`, `perplexity`, `scrapecreators`, `serper`,
+`xai`, and `xquik`. `gemini` is accepted as an alias for `google`; `remote` is
+an alias for `hosted`. The first-run ScrapeCreators consent flow adds
+`scrapecreators` automatically when it saves the key. Existing manual
+installations must add the providers they intend to use. Run `--preflight` to
+see allowlisted, blocked, or unknown provider names; it never prints key values.
+
+The hosted backend additionally requires `hosted` in this allowlist. Without
+it, `LAST30DAYS_API_KEY` and `LAST30DAYS_API_BASE` remain configured but the
+local engine runs instead.
 
 **Source-by-source** - what each key unlocks:
 

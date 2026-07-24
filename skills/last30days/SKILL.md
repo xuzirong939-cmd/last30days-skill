@@ -4,8 +4,8 @@ version: "3.10.0"
 description: "Research what people actually say about any topic in the last 30 days. Pulls posts and engagement from Reddit, X, YouTube, TikTok, Hacker News, Polymarket, GitHub, and the web."
 argument-hint: 'last30days nvidia earnings reaction | last30days AI video tools | last30days what users want in react'
 allowed-tools: Bash, Read, Write, AskUserQuestion, WebSearch
-homepage: https://github.com/mvanhorn/last30days-skill
-repository: https://github.com/mvanhorn/last30days-skill
+homepage: https://github.com/xuzirong939-cmd/last30days-skill
+repository: https://github.com/xuzirong939-cmd/last30days-skill
 author: mvanhorn
 license: MIT
 user-invocable: true
@@ -16,6 +16,7 @@ metadata:
       env: []
       optionalEnv:
         - SCRAPECREATORS_API_KEY
+        - LAST30DAYS_PAID_PROVIDERS
         - OPENAI_API_KEY
         - XAI_API_KEY
         - OPENROUTER_API_KEY
@@ -34,7 +35,7 @@ metadata:
     primaryEnv: SCRAPECREATORS_API_KEY
     files:
       - "scripts/*"
-    homepage: https://github.com/mvanhorn/last30days-skill
+    homepage: https://github.com/xuzirong939-cmd/last30days-skill
     tags:
       - research
       - deep-research
@@ -334,24 +335,15 @@ if [ -z "${LAST30DAYS_PYTHON:-}" ]; then
   done
 fi
 
-# uv fallback: on hosts without a system 3.12 but with `uv` on PATH (most agent
-# sandboxes: Cowork, Codex, etc.), provision a managed 3.12 automatically instead
-# of hard-failing. No-op when uv is absent — those hosts still hit the error below.
+# uv discovery fallback: use an already-installed managed interpreter, but never
+# install or modify runtimes during preflight.
 if [ -z "${LAST30DAYS_PYTHON:-}" ] && command -v uv >/dev/null 2>&1; then
   uv_py="$(uv python find '>=3.12' 2>/dev/null)"
-  if [ -z "$uv_py" ] || [ ! -x "$uv_py" ]; then
-    echo "NOTE: no Python 3.12+ found; installing a managed CPython 3.12 via uv (~28MB, one-time)." >&2
-    if UV_HTTP_TIMEOUT=30 uv python install 3.12 >/dev/null 2>&1; then
-      uv_py="$(uv python find '>=3.12' 2>/dev/null)"
-    else
-      echo "WARN: 'uv python install 3.12' failed (network, disk space, or proxy?); falling through to the version-gate error below." >&2
-    fi
-  fi
   try_last30days_python "$uv_py"
 fi
 
 if [ -z "${LAST30DAYS_PYTHON:-}" ]; then
-  echo "ERROR: last30days v3 requires Python 3.12+. Install Python 3.12+ or set LAST30DAYS_PYTHON to a supported interpreter." >&2
+  echo "ERROR: last30days v3 requires an existing Python 3.12+. Install it explicitly (for example: uv python install 3.12) or set LAST30DAYS_PYTHON to a supported interpreter; preflight never installs software." >&2
   exit 1
 fi
 
@@ -392,7 +384,7 @@ Set `LAST30DAYS_MEMORY_DIR` before invoking the skill to choose where raw resear
 
 The engine reads `LAST30DAYS_MEMORY_DIR` from either the process env or `~/.config/last30days/.env`, so direct CLI invocations (`python3 scripts/last30days.py ...`) without `--save-dir` will still save when the env var is set. Mirrors the `LAST30DAYS_STORE` env-or-flag convention. Explicit `--save-dir` always wins.
 
-When both `LAST30DAYS_API_KEY` and `LAST30DAYS_API_BASE` are set, the engine runs the research through that configured remote API instead of local sources (unless `--mock` is passed); `LAST30DAYS_API_BASE` is the endpoint and has no built-in default, so leaving either variable unset runs local sources normally. The invocation is unchanged: same flags, `--quick`/`--deep` map to search depth, progress lines still stream on stderr (`[narrate] step=...` plus a compact elapsed/eta line), and the report prints on stdout and saves to the memory dir as usual, so Steps 1-4 proceed normally on the output. No per-source keys or setup-wizard credentials are needed for the search itself in this mode. Two engine exits need specific handling: exit code 3 means the API asked a clarifying question first - the engine prints the question and options on stderr; present them to the user and re-run with the chosen angle folded into the topic. An insufficient-credits failure (HTTP 402) prints the account's balance, the amount needed, and a billing link - relay those lines to the user verbatim; do not fall back to WebSearch-only synthesis.
+When both `LAST30DAYS_API_KEY` and `LAST30DAYS_API_BASE` are set **and** `hosted` is present in `LAST30DAYS_PAID_PROVIDERS`, the engine runs the research through that configured remote API instead of local sources (unless `--mock` is passed); `LAST30DAYS_API_BASE` is the endpoint and has no built-in default, so leaving either variable unset or omitting the explicit allowlist entry runs local sources normally. The invocation is unchanged: same flags, `--quick`/`--deep` map to search depth, progress lines still stream on stderr (`[narrate] step=...` plus a compact elapsed/eta line), and the report prints on stdout and saves to the memory dir as usual, so Steps 1-4 proceed normally on the output. No per-source keys or setup-wizard credentials are needed for the search itself in this mode. Two engine exits need specific handling: exit code 3 means the API asked a clarifying question first - the engine prints the question and options on stderr; present them to the user and re-run with the chosen angle folded into the topic. An insufficient-credits failure (HTTP 402) prints the account's balance, the amount needed, and a billing link - relay those lines to the user verbatim; do not fall back to WebSearch-only synthesis.
 
 ## Step 0: First-Run Setup Wizard
 

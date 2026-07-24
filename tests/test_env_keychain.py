@@ -178,8 +178,10 @@ def clean_env(monkeypatch, tmp_path):
         "SERPER_API_KEY", "OPENROUTER_API_KEY", "PERPLEXITY_API_KEY", "PARALLEL_API_KEY",
         "XQUIK_API_KEY", "GOOGLE_API_KEY", "GEMINI_API_KEY",
         "GOOGLE_GENAI_API_KEY", "INCLUDE_SOURCES", "FROM_BROWSER",
+        "LAST30DAYS_PAID_PROVIDERS",
     ]:
         monkeypatch.delenv(var, raising=False)
+    monkeypatch.setenv("LAST30DAYS_PAID_PROVIDERS", "openai,xai")
     monkeypatch.setattr(env, "CONFIG_FILE", tmp_path / "does-not-exist.env")
     monkeypatch.chdir(tmp_path)  # no project .env in this tree either
     # Neutralize the pass(1) source so these tests don't pick up a real pass

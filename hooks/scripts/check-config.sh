@@ -132,15 +132,24 @@ load_keychain_presence
 # Check SETUP_COMPLETE (from file, env, or Keychain presence)
 SETUP_COMPLETE="${ENV_SETUP_COMPLETE:-${SETUP_COMPLETE:-}}"
 
-# Compute last-run summary line (if last-run.json exists)
+# Compute last-run summary line. Prefer the authoritative atomically replaced
+# current.json; keep last-run.json as a compatibility fallback.
 if [[ "${LAST30DAYS_CONFIG_DIR+x}" == "x" ]]; then
   if [[ -n "$LAST30DAYS_CONFIG_DIR" ]]; then
-    LAST_RUN_FILE="$LAST30DAYS_CONFIG_DIR/last-run.json"
+    if [[ -f "$LAST30DAYS_CONFIG_DIR/current.json" ]]; then
+      LAST_RUN_FILE="$LAST30DAYS_CONFIG_DIR/current.json"
+    else
+      LAST_RUN_FILE="$LAST30DAYS_CONFIG_DIR/last-run.json"
+    fi
   else
     LAST_RUN_FILE=""
   fi
 else
-  LAST_RUN_FILE="$HOME/.config/last30days/last-run.json"
+  if [[ -f "$HOME/.config/last30days/current.json" ]]; then
+    LAST_RUN_FILE="$HOME/.config/last30days/current.json"
+  else
+    LAST_RUN_FILE="$HOME/.config/last30days/last-run.json"
+  fi
 fi
 LAST_RUN_LINE=""
 if [[ -n "$LAST_RUN_FILE" && -f "$LAST_RUN_FILE" ]] && command -v python3 &>/dev/null; then

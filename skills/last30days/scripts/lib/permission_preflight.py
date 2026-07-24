@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from . import quality
+
 
 ENDPOINT_OVERRIDE_KEYS = {
     "BSKY_SEARCH_HOST",
@@ -114,9 +116,25 @@ def build(
     action_items: list[str] = []
     if ignored_project_config:
         action_items.append("Project config was ignored; set LAST30DAYS_TRUST_PROJECT_CONFIG=1 to trust it.")
+    paid_allowlist = list(config.get("_PAID_PROVIDER_ALLOWLIST") or [])
+    blocked_paid_providers = list(config.get("_BLOCKED_PAID_PROVIDERS") or [])
+    unknown_paid_providers = list(config.get("_UNKNOWN_PAID_PROVIDERS") or [])
+    if blocked_paid_providers:
+        action_items.append(
+            "Configured paid credentials are inert until explicitly allowlisted: "
+            + _format_names(blocked_paid_providers)
+            + "."
+        )
+    if unknown_paid_providers:
+        action_items.append(
+            "Unknown names in LAST30DAYS_PAID_PROVIDERS: "
+            + _format_names(unknown_paid_providers)
+            + "."
+        )
 
     return {
         "status": "action_needed" if action_items else "ready",
+        "quality_status": quality.WARN if action_items else quality.PASS,
         "safe": bool(diagnose.get("safe")),
         "local_reads": {
             "config_source": config_source,
@@ -142,6 +160,11 @@ def build(
             "native_search": bool(diagnose.get("native_search")),
             "endpoint_overrides": active_endpoint_overrides,
             "ignored_endpoint_overrides": ignored_endpoint_overrides,
+            "paid_providers": {
+                "allowlisted": paid_allowlist,
+                "blocked": blocked_paid_providers,
+                "unknown": unknown_paid_providers,
+            },
         },
         "action_items": action_items,
     }
@@ -159,6 +182,7 @@ def render_text(preflight: dict[str, Any]) -> str:
         lines.append("Status: Ready to research with safe defaults.")
     else:
         lines.append("Status: Ready, with item(s) to review.")
+    lines.append(f"Quality: {preflight.get('quality_status') or quality.WARN}")
 
     reads = preflight.get("local_reads") or {}
     project = reads.get("project_config") or {}
@@ -229,6 +253,16 @@ def render_text(preflight: dict[str, Any]) -> str:
         lines.append("- Endpoint overrides active: " + _format_names(endpoint_overrides))
     if ignored_endpoint_overrides:
         lines.append("- Endpoint overrides ignored: " + _format_names(ignored_endpoint_overrides))
+    paid_providers = network.get("paid_providers") or {}
+    lines.append(
+        "- Paid providers allowlisted: "
+        + _format_names(list(paid_providers.get("allowlisted") or []))
+    )
+    if paid_providers.get("blocked"):
+        lines.append(
+            "- Paid providers blocked (configured credentials remain inert): "
+            + _format_names(list(paid_providers.get("blocked") or []))
+        )
 
     action_items = list(preflight.get("action_items") or [])
     lines.append("")

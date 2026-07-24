@@ -31,6 +31,11 @@ class RuntimePreflightContractTests(unittest.TestCase):
         self.assertIn('if [ -z "${LAST30DAYS_PYTHON:-}" ]; then', self.skill_md)
         self.assertIn('ERROR: LAST30DAYS_PYTHON must point to Python 3.12+.', self.skill_md)
 
+    def test_preflight_never_installs_or_downloads_python(self) -> None:
+        self.assertNotIn("UV_HTTP_TIMEOUT=30 uv python install", self.skill_md)
+        self.assertNotIn("if UV_HTTP_TIMEOUT", self.skill_md)
+        self.assertIn("preflight never installs software", self.skill_md)
+
 
 if __name__ == "__main__":
     unittest.main()
