@@ -461,6 +461,7 @@ class TestWriteApiKey:
             assert result is True
             assert env_path.exists()
             assert "SCRAPECREATORS_API_KEY=sc_live_abcdef123456" in env_path.read_text()
+            assert "LAST30DAYS_PAID_PROVIDERS=scrapecreators" in env_path.read_text()
             assert (env_path.stat().st_mode & 0o777) == 0o600
 
     def test_value_round_trips_through_env_loader(self):
@@ -473,6 +474,7 @@ class TestWriteApiKey:
 
             loaded = env_mod.load_env_file(env_path)
             assert loaded["SCRAPECREATORS_API_KEY"] == "sc_live_abcdef123456"
+            assert loaded["LAST30DAYS_PAID_PROVIDERS"] == "scrapecreators"
 
     def test_idempotent_when_key_already_present(self):
         """If the key already exists, do not duplicate or overwrite it."""
@@ -487,6 +489,21 @@ class TestWriteApiKey:
             assert content.count("SCRAPECREATORS_API_KEY") == 1
             assert "existing_key" in content
             assert "sc_new_value" not in content
+            assert "LAST30DAYS_PAID_PROVIDERS=scrapecreators" in content
+
+    def test_preserves_and_extends_existing_paid_provider_allowlist(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            env_path = Path(tmpdir) / ".env"
+            env_path.write_text(
+                "LAST30DAYS_PAID_PROVIDERS=openai\n"
+                "SCRAPECREATORS_API_KEY=existing_key\n"
+            )
+
+            assert setup_wizard.write_api_key(env_path, "ignored-new-key") is True
+
+            content = env_path.read_text()
+            assert content.count("LAST30DAYS_PAID_PROVIDERS") == 1
+            assert "LAST30DAYS_PAID_PROVIDERS=openai,scrapecreators" in content
 
     def test_appends_without_clobbering_other_keys(self):
         """Existing unrelated keys are preserved."""

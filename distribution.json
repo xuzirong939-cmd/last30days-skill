@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "name": "last30days-skill",
+  "version": "3.10.0",
+  "repository": "xuzirong939-cmd/last30days-skill",
+  "repository_url": "https://github.com/xuzirong939-cmd/last30days-skill",
+  "upstream_repository": "mvanhorn/last30days-skill",
+  "upstream_url": "https://github.com/mvanhorn/last30days-skill",
+  "license": "MIT",
+  "upstream_author": "Matt Van Horn"
+}

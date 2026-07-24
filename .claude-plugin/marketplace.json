@@ -1,8 +1,8 @@
 {
   "name": "last30days-skill",
   "owner": {
-    "name": "Matt Van Horn",
-    "url": "https://github.com/mvanhorn"
+    "name": "xuzirong939-cmd",
+    "url": "https://github.com/xuzirong939-cmd"
   },
   "metadata": {
     "description": "Marketplace hosting the last30days research plugin."
@@ -18,7 +18,7 @@
       },
       "source": "./",
       "category": "productivity",
-      "homepage": "https://github.com/mvanhorn/last30days-skill"
+      "homepage": "https://github.com/xuzirong939-cmd/last30days-skill"
     }
   ]
 }

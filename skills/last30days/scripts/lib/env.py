@@ -48,6 +48,33 @@ KEYCHAIN_KEYS = (
     "XIAOHONGSHU_API_BASE",
 )
 
+# Credentials for billable or quota-metered providers are inert unless the
+# provider is named explicitly here. Keeping the policy separate from secret
+# storage prevents a previously saved key from silently activating a paid
+# network path after an update.
+PAID_PROVIDERS_ENV = "LAST30DAYS_PAID_PROVIDERS"
+PAID_PROVIDER_KEYS: dict[str, tuple[str, ...]] = {
+    "apify": ("APIFY_API_TOKEN",),
+    "brave": ("BRAVE_API_KEY",),
+    "exa": ("EXA_API_KEY",),
+    "google": ("GOOGLE_API_KEY", "GEMINI_API_KEY", "GOOGLE_GENAI_API_KEY"),
+    "groq": ("GROQ_API_KEY",),
+    "hosted": ("LAST30DAYS_API_KEY",),
+    "openai": ("OPENAI_API_KEY",),
+    "openrouter": ("OPENROUTER_API_KEY",),
+    "parallel": ("PARALLEL_API_KEY",),
+    "perplexity": ("PERPLEXITY_API_KEY",),
+    "scrapecreators": ("SCRAPECREATORS_API_KEY",),
+    "serper": ("SERPER_API_KEY",),
+    "xai": ("XAI_API_KEY",),
+    "xquik": ("XQUIK_API_KEY",),
+}
+PAID_PROVIDER_ALIASES = {
+    "gemini": "google",
+    "scrape-creators": "scrapecreators",
+    "remote": "hosted",
+}
+
 # pass(1) integration: Linux/Unix analog of the Keychain source. Each key in
 # KEYCHAIN_KEYS is looked up at pass path f"{prefix}{KEY}", the direct analog of
 # Keychain's "last30days-<KEY>" service-name convention, so any user stores keys
@@ -95,6 +122,79 @@ def _truthy(value: Any) -> bool:
     if value is None:
         return False
     return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def parse_paid_provider_allowlist(raw: Any) -> tuple[set[str], set[str]]:
+    """Return (allowed, unknown) provider names from a comma-separated value."""
+    allowed: set[str] = set()
+    unknown: set[str] = set()
+    for item in str(raw or "").split(","):
+        name = item.strip().lower()
+        if not name:
+            continue
+        name = PAID_PROVIDER_ALIASES.get(name, name)
+        if name in PAID_PROVIDER_KEYS:
+            allowed.add(name)
+        else:
+            unknown.add(name)
+    return allowed, unknown
+
+
+def paid_provider_allowed(raw_or_config: Any, provider: str) -> bool:
+    """Return whether a paid provider has explicit activation permission."""
+    if isinstance(raw_or_config, dict):
+        cached = raw_or_config.get("_PAID_PROVIDER_ALLOWLIST")
+        if isinstance(cached, (list, tuple, set)):
+            return PAID_PROVIDER_ALIASES.get(provider.lower(), provider.lower()) in cached
+        raw = raw_or_config.get(PAID_PROVIDERS_ENV)
+        if raw is None:
+            raw = os.environ.get(PAID_PROVIDERS_ENV)
+    else:
+        raw = raw_or_config
+    allowed, _unknown = parse_paid_provider_allowlist(raw)
+    canonical = PAID_PROVIDER_ALIASES.get(provider.lower(), provider.lower())
+    return canonical in allowed
+
+
+def paid_provider_for_key(key: str) -> str | None:
+    """Return the canonical paid provider that owns a credential key."""
+    return next(
+        (
+            provider
+            for provider, keys in PAID_PROVIDER_KEYS.items()
+            if key in keys
+        ),
+        None,
+    )
+
+
+def _apply_paid_provider_policy(config: dict[str, Any]) -> None:
+    """Disable configured paid credentials that are not explicitly allowlisted."""
+    allowed, unknown = parse_paid_provider_allowlist(config.get(PAID_PROVIDERS_ENV))
+    blocked: list[str] = []
+    for provider, keys in PAID_PROVIDER_KEYS.items():
+        # Hosted credentials are process-only and are gated at CLI dispatch;
+        # record only their presence state here so preflight can explain why
+        # they remain inert without ever copying the secret into config.
+        if provider == "hosted":
+            present = any(bool(os.environ.get(key)) for key in keys)
+        else:
+            present = any(bool(config.get(key)) for key in keys)
+        if not present or provider in allowed:
+            continue
+        blocked.append(provider)
+        if provider == "hosted":
+            continue
+        for key in keys:
+            config[key] = None
+
+    if "openai" in blocked:
+        config["OPENAI_AUTH_SOURCE"] = AUTH_SOURCE_NONE
+        config["OPENAI_AUTH_STATUS"] = AUTH_STATUS_MISSING
+
+    config["_PAID_PROVIDER_ALLOWLIST"] = sorted(allowed)
+    config["_BLOCKED_PAID_PROVIDERS"] = sorted(blocked)
+    config["_UNKNOWN_PAID_PROVIDERS"] = sorted(unknown)
 
 
 def _project_config_trusted(policy: ConfigLoadPolicy, file_env: dict[str, Any]) -> bool:
@@ -371,9 +471,21 @@ def get_config(policy: ConfigLoadPolicy | None = None) -> dict[str, Any]:
 
     # Keychain is the lowest-priority source (Darwin only; no-op elsewhere).
     # Loaded before openai_auth so OPENAI_API_KEY can come from Keychain too.
+    early_paid_raw = (
+        os.environ[PAID_PROVIDERS_ENV]
+        if PAID_PROVIDERS_ENV in os.environ
+        else merged_env.get(PAID_PROVIDERS_ENV)
+    )
+    early_paid_allowlist, _early_unknown = parse_paid_provider_allowlist(early_paid_raw)
+    keychain_keys = [
+        key
+        for key in KEYCHAIN_KEYS
+        if (provider := paid_provider_for_key(key)) is None
+        or provider in early_paid_allowlist
+    ]
     keychain_aliases_raw = os.environ.get(KEYCHAIN_ALIASES_ENV) or merged_env.get(KEYCHAIN_ALIASES_ENV)
     keychain_aliases = _parse_keychain_aliases(keychain_aliases_raw)
-    keychain_env = _load_keychain(list(KEYCHAIN_KEYS), keychain_aliases)
+    keychain_env = _load_keychain(keychain_keys, keychain_aliases)
     merged_env = {**keychain_env, **merged_env}
     # pass(1) store: Linux/Unix analog of Keychain at convention path
     # {prefix}<KEY>. Decrypts transiently so secrets stay encrypted at rest (no
@@ -388,7 +500,7 @@ def get_config(policy: ConfigLoadPolicy | None = None) -> dict[str, Any]:
         or merged_env.get("LAST30DAYS_PASS_PREFIX")
         or DEFAULT_PASS_PATH_PREFIX
     )
-    pass_missing = [k for k in KEYCHAIN_KEYS if k not in os.environ and not merged_env.get(k)]
+    pass_missing = [k for k in keychain_keys if k not in os.environ and not merged_env.get(k)]
     pass_env = _load_pass(pass_missing, pass_prefix)
     merged_env = {**pass_env, **merged_env}
 
@@ -457,6 +569,7 @@ def get_config(policy: ConfigLoadPolicy | None = None) -> dict[str, Any]:
         ('LAST30DAYS_TRUSTPILOT_NO_BROWSER', None),
         ('FROM_BROWSER', None),
         ('LAST30DAYS_TRUST_PROJECT_CONFIG', None),
+        (PAID_PROVIDERS_ENV, ''),
         ('SETUP_COMPLETE', None),
         ('INCLUDE_SOURCES', ''),
         ('EXCLUDE_SOURCES', ''),
@@ -472,7 +585,12 @@ def get_config(policy: ConfigLoadPolicy | None = None) -> dict[str, Any]:
     ]
 
     for key, default in keys:
-        config[key] = os.environ.get(key) or merged_env.get(key, default)
+        if key == PAID_PROVIDERS_ENV and key in os.environ:
+            # An explicit empty process value is a deny-all override; do not
+            # fall back to a file allowlist.
+            config[key] = os.environ[key]
+        else:
+            config[key] = os.environ.get(key) or merged_env.get(key, default)
 
     # Backward-compat: ScrapeCreators' own examples and tutorials use the
     # SCRAPE_CREATORS_API_KEY spelling (with underscore between SCRAPE and
@@ -518,6 +636,7 @@ def get_config(policy: ConfigLoadPolicy | None = None) -> dict[str, Any]:
                 config[key] = value
                 config[f"_{key}_SOURCE"] = "browser"
 
+    _apply_paid_provider_policy(config)
     return config
 
 

@@ -1,7 +1,7 @@
 # /last30days
 
 <p align="center">
-  <a href="https://github.com/mvanhorn/last30days-skill">
+  <a href="https://github.com/xuzirong939-cmd/last30days-skill">
     <img src="https://img.shields.io/badge/%231-Repository%20Of%20The%20Day-6f42c1?style=for-the-badge&logo=github&label=GITHUB%20TRENDING" alt="GitHub Trending #1 Repository Of The Day" />
   </a>
   <br/>
@@ -16,15 +16,22 @@
 
 This README tracks the current v3 pipeline. The runtime skill spec lives in [skills/last30days/SKILL.md](skills/last30days/SKILL.md), which is the source of truth for the latest command and setup behavior.
 
+> **Distribution and attribution:** this repository is the
+> `xuzirong939-cmd/last30days-skill` distribution, derived from
+> [mvanhorn/last30days-skill](https://github.com/mvanhorn/last30days-skill).
+> The upstream author and MIT license are preserved in the manifests and
+> [LICENSE](LICENSE); `distribution.json` is the machine-readable identity
+> contract for this fork.
+
 **Claude Code (recommended — auto-updates via marketplace):**
 ```
-/plugin marketplace add mvanhorn/last30days-skill
+/plugin marketplace add xuzirong939-cmd/last30days-skill
 /plugin install last30days
 ```
 
 **Codex, Cursor, Copilot, Gemini CLI, or any of 50+ [Agent Skills](https://agentskills.io) hosts:**
 ```
-npx skills add mvanhorn/last30days-skill -g
+npx skills add xuzirong939-cmd/last30days-skill -g
 ```
 (`-g` installs globally for your user, available across all projects. Drop it to scope per-project.)
 
@@ -174,16 +181,16 @@ Say "eli5 on" after any research run. The synthesis rewrites in plain language. 
 
 | Surface | Install | Updates |
 |---------|---------|---------|
-| **Claude Code** (recommended) | `/plugin marketplace add mvanhorn/last30days-skill` | Auto via marketplace, or `claude plugin update last30days@last30days-skill` |
-| **Codex, Cursor, Copilot, Gemini CLI, or any of 50+ [Agent Skills](https://agentskills.io) hosts** | `npx skills add mvanhorn/last30days-skill -g` | `npx skills update last30days -g` |
-| **claude.ai** (web) | [Download `last30days.skill`](https://github.com/mvanhorn/last30days-skill/releases/latest/download/last30days.skill) and upload via claude.ai > Customize > Skills > + > Create skill > Upload a skill | Re-download and re-upload |
-| **Claude Desktop** | [Download the `.mcpb` for your platform](https://github.com/mvanhorn/last30days-skill/releases/latest) and drag into Settings > Extensions | Re-download and drag the new bundle in |
+| **Claude Code** (recommended) | `/plugin marketplace add xuzirong939-cmd/last30days-skill` | Auto via marketplace, or `claude plugin update last30days@last30days-skill` |
+| **Codex, Cursor, Copilot, Gemini CLI, or any of 50+ [Agent Skills](https://agentskills.io) hosts** | `npx skills add xuzirong939-cmd/last30days-skill -g` | `npx skills update last30days -g` |
+| **claude.ai** (web) | [Download `last30days.skill`](https://github.com/xuzirong939-cmd/last30days-skill/releases/latest/download/last30days.skill) and upload via claude.ai > Customize > Skills > + > Create skill > Upload a skill | Re-download and re-upload |
+| **Claude Desktop** | [Download the `.mcpb` for your platform](https://github.com/xuzirong939-cmd/last30days-skill/releases/latest) and drag into Settings > Extensions | Re-download and drag the new bundle in |
 | **OpenClaw** | `clawhub install last30days-official` | `clawhub update last30days-official` |
 
 ### Claude Code (recommended)
 
 ```
-/plugin marketplace add mvanhorn/last30days-skill
+/plugin marketplace add xuzirong939-cmd/last30days-skill
 ```
 
 Recommended because the Claude Code marketplace handles updates for you — the plugin cache is versioned and auto-refreshes when a new release publishes. Run `claude plugin update last30days@last30days-skill` to force a check.
@@ -191,7 +198,7 @@ Recommended because the Claude Code marketplace handles updates for you — the 
 If you'd rather use the agent-skills install path on Claude Code, that's also supported:
 
 ```
-npx skills add mvanhorn/last30days-skill -g -a claude-code
+npx skills add xuzirong939-cmd/last30days-skill -g -a claude-code
 ```
 
 The native plugin and the `npx skills` install can coexist. Note that Claude Code does not dedupe across install methods: if you have both the marketplace plugin and the `npx skills` copy active, `/last30days` will show two entries. Use one install method per machine.
@@ -201,7 +208,7 @@ The native plugin and the `npx skills` install can coexist. Note that Claude Cod
 Install via the open [Agent Skills](https://agentskills.io) CLI — supports 50+ harnesses including `codex`, `cursor`, `github-copilot`, `gemini-cli`, `claude-code`, `windsurf`, `cline`, `continue`, `roo`, `aider-desk`, `opencode`, `goose`, and more (full list on the [vercel-labs/skills repo](https://github.com/vercel-labs/skills)).
 
 ```bash
-npx skills add mvanhorn/last30days-skill -g
+npx skills add xuzirong939-cmd/last30days-skill -g
 ```
 
 The `-g` (global) flag installs to your user directory so the skill is available across all projects. Without `-g`, `npx skills` installs project-locally into `./.skills/` (committed with the repo). For a research-the-world tool, global is what you want.
@@ -211,10 +218,10 @@ Codex desktop and other folder-mode hosts can work in ordinary folders as well a
 By default this installs for whichever harness `npx skills` detects. To target a specific one (or multiple):
 
 ```bash
-npx skills add mvanhorn/last30days-skill -g -a codex
-npx skills add mvanhorn/last30days-skill -g -a cursor
-npx skills add mvanhorn/last30days-skill -g -a gemini-cli
-npx skills add mvanhorn/last30days-skill -g -a codex -a cursor
+npx skills add xuzirong939-cmd/last30days-skill -g -a codex
+npx skills add xuzirong939-cmd/last30days-skill -g -a cursor
+npx skills add xuzirong939-cmd/last30days-skill -g -a gemini-cli
+npx skills add xuzirong939-cmd/last30days-skill -g -a codex -a cursor
 ```
 
 Update later with:
@@ -233,7 +240,7 @@ List and remove with `npx skills list -g` and `npx skills remove last30days -g`.
 
 ### claude.ai (web)
 
-1. [Download `last30days.skill`](https://github.com/mvanhorn/last30days-skill/releases/latest/download/last30days.skill) from the latest release
+1. [Download `last30days.skill`](https://github.com/xuzirong939-cmd/last30days-skill/releases/latest/download/last30days.skill) from the latest release
 2. Go to [claude.ai > Customize > Skills](https://claude.ai/customize/skills)
 3. Click the `+` button in the Skills panel > click on `Create skill` > `Upload a skill` and browse/drop the file in
 
@@ -243,7 +250,7 @@ Enable "Code execution and file creation" under Capabilities first — skills wo
 
 Claude Desktop installs `/last30days` as an MCP server via a `.mcpb` bundle (a one-click Model Context Protocol package).
 
-1. Go to the [latest release](https://github.com/mvanhorn/last30days-skill/releases/latest) and download the `.mcpb` for your platform:
+1. Go to the [latest release](https://github.com/xuzirong939-cmd/last30days-skill/releases/latest) and download the `.mcpb` for your platform:
    - macOS Apple Silicon: `last30days-pp-mcp-darwin-arm64.mcpb`
    - macOS Intel: `last30days-pp-mcp-darwin-amd64.mcpb`
    - Linux x86_64: `last30days-pp-mcp-linux-amd64.mcpb`
@@ -272,7 +279,7 @@ optional companion path, not a last30days dependency or endorsement.
 ### Manual (developer)
 
 ```bash
-git clone https://github.com/mvanhorn/last30days-skill.git
+git clone https://github.com/xuzirong939-cmd/last30days-skill.git
 ln -s "$(pwd)/last30days-skill/skills/last30days" ~/.claude/skills/last30days
 ```
 
@@ -283,6 +290,13 @@ Reddit (with comments), Hacker News, Polymarket, and GitHub work immediately. Ze
 ## Bring your own keys
 
 These platforms don't have relationships with each other. X doesn't know what Reddit thinks. YouTube doesn't see TikTok. But you can bring your own API keys and browser tokens, and suddenly you have access to all of them at once.
+
+Paid or quota-metered keys are inert until you explicitly name their provider
+in `LAST30DAYS_PAID_PROVIDERS` (for example,
+`LAST30DAYS_PAID_PROVIDERS=scrapecreators,openai`). The setup wizard adds
+`scrapecreators` after its explicit consent step. See
+[CONFIGURATION.md](CONFIGURATION.md#explicit-paid-provider-allowlist) for the
+complete list.
 
 | Sources | What you need | Cost |
 |---------|---------------|------|
@@ -352,7 +366,7 @@ Built with Python 3.12+, yt-dlp, Node.js (vendored Bird client for X search), an
 
 See [CONTRIBUTORS.md](CONTRIBUTORS.md) for the full list of community contributors and [CHANGELOG.md](CHANGELOG.md) for version history.
 
-## Star History
+## Upstream Star History
 
 <a href="https://star-history.com/#mvanhorn/last30days-skill&Date">
   <picture>
@@ -364,4 +378,6 @@ See [CONTRIBUTORS.md](CONTRIBUTORS.md) for the full list of community contributo
 
 ---
 
-**@slashlast30days** · [github.com/mvanhorn/last30days-skill](https://github.com/mvanhorn/last30days-skill)
+Fork distribution: [github.com/xuzirong939-cmd/last30days-skill](https://github.com/xuzirong939-cmd/last30days-skill)
+
+Upstream and original author: **@slashlast30days** · [github.com/mvanhorn/last30days-skill](https://github.com/mvanhorn/last30days-skill)

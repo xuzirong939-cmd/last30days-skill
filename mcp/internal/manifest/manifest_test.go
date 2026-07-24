@@ -141,7 +141,11 @@ func TestUserConfigShape(t *testing.T) {
 		if slot.Description == "" {
 			t.Errorf("user_config[%q].description is empty", key)
 		}
-		if !slot.Sensitive {
+		if key == "last30days_paid_providers" {
+			if slot.Sensitive {
+				t.Errorf("user_config[%q].sensitive = true; provider names are non-secret", key)
+			}
+		} else if !slot.Sensitive {
 			// API keys must be flagged sensitive so Claude Desktop masks
 			// the input and prefers OS-keychain storage.
 			t.Errorf("user_config[%q].sensitive = false; want true for API credentials", key)

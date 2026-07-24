@@ -21,6 +21,15 @@ def _skill_version() -> str:
 
 
 class TestPluginContract(unittest.TestCase):
+    def test_distribution_identity_is_explicit_and_keeps_upstream_attribution(self) -> None:
+        distribution = _json(ROOT / "distribution.json")
+
+        self.assertEqual("xuzirong939-cmd/last30days-skill", distribution["repository"])
+        self.assertEqual("mvanhorn/last30days-skill", distribution["upstream_repository"])
+        self.assertEqual("MIT", distribution["license"])
+        self.assertEqual("Matt Van Horn", distribution["upstream_author"])
+        self.assertIn("Copyright (c) 2026 Matt Van Horn", (ROOT / "LICENSE").read_text())
+
     def test_codex_plugin_manifest_uses_repo_skill_root(self) -> None:
         manifest = _json(ROOT / ".codex-plugin" / "plugin.json")
 
@@ -39,7 +48,7 @@ class TestPluginContract(unittest.TestCase):
         self.assertEqual(
             {
                 "source": "url",
-                "url": "https://github.com/mvanhorn/last30days-skill.git",
+                "url": "https://github.com/xuzirong939-cmd/last30days-skill.git",
             },
             plugin["source"],
         )
@@ -47,16 +56,30 @@ class TestPluginContract(unittest.TestCase):
     def test_versions_match_across_manifests(self) -> None:
         pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
         version = pyproject["project"]["version"]
+        distribution = _json(ROOT / "distribution.json")
 
+        self.assertEqual(version, distribution["version"])
         self.assertEqual(version, _skill_version())
         self.assertEqual(version, _json(ROOT / ".claude-plugin" / "plugin.json")["version"])
         self.assertEqual(version, _json(ROOT / ".codex-plugin" / "plugin.json")["version"])
         self.assertEqual(version, _json(ROOT / "gemini-extension.json")["version"])
+        self.assertEqual(version, _json(ROOT / "mcp" / "manifest.json")["version"])
 
         marketplace = _json(ROOT / ".claude-plugin" / "marketplace.json")
         plugins = marketplace.get("plugins") or []
         self.assertEqual(1, len(plugins))
         self.assertEqual(version, plugins[0]["version"])
+
+    def test_distribution_repository_matches_shipping_manifests(self) -> None:
+        distribution = _json(ROOT / "distribution.json")
+        repository_url = distribution["repository_url"]
+
+        self.assertEqual(repository_url, _json(ROOT / ".claude-plugin" / "plugin.json")["repository"])
+        self.assertEqual(repository_url, _json(ROOT / ".codex-plugin" / "plugin.json")["repository"])
+        self.assertEqual(
+            repository_url,
+            _json(ROOT / "mcp" / "manifest.json")["repository"]["url"],
+        )
 
     def test_claude_marketplace_has_current_schema_shape(self) -> None:
         marketplace = _json(ROOT / ".claude-plugin" / "marketplace.json")

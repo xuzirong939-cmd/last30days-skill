@@ -108,6 +108,7 @@ def _clean_env(monkeypatch):
     monkeypatch.delenv("LAST30DAYS_API_KEY", raising=False)
     monkeypatch.delenv("LAST30DAYS_API_BASE", raising=False)
     monkeypatch.delenv("LAST30DAYS_MEMORY_DIR", raising=False)
+    monkeypatch.setenv("LAST30DAYS_PAID_PROVIDERS", "hosted")
 
 
 # ---------------------------------------------------------------------------

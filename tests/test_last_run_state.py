@@ -1,4 +1,5 @@
 import io
+import datetime
 import json
 import os
 import re
@@ -105,6 +106,54 @@ class LastRunStateTests(unittest.TestCase):
             self.assertGreaterEqual(payload["total"], 0)
             self.assertEqual(str(config_dir / "last-report.json"), payload["report_cache"])
             self.assertTrue((config_dir / "last-report.json").exists())
+            current = json.loads((config_dir / "current.json").read_text())
+            self.assertEqual("last30days-current/v1", current["schema"])
+            self.assertEqual("PASS", current["quality_status"])
+            self.assertEqual([], current["quality_reasons"])
+
+    def test_current_state_warns_on_explicit_report_warnings(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            config_dir = Path(tmp) / "config"
+            report = _report("OpenClaw")
+            report.warnings.append("dummy degraded source")
+            with mock.patch.object(cli.env, "CONFIG_DIR", config_dir):
+                self.assertTrue(cli._write_last_run("OpenClaw", report))
+
+            current = json.loads((config_dir / "current.json").read_text())
+            self.assertEqual("WARN", current["quality_status"])
+            self.assertEqual(["warnings:1"], current["quality_reasons"])
+
+    def test_current_state_files_are_atomic_owner_only_and_leave_no_temps(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            config_dir = Path(tmp) / "config"
+            with mock.patch.object(cli.env, "CONFIG_DIR", config_dir):
+                self.assertTrue(cli._write_last_run("OpenClaw", _report("OpenClaw")))
+
+            for name in ("current.json", "last-run.json", "last-report.json"):
+                path = config_dir / name
+                self.assertTrue(path.exists())
+                if os.name != "nt":
+                    self.assertEqual(0o600, stat.S_IMODE(path.stat().st_mode))
+            self.assertEqual([], list(config_dir.glob(".*.tmp")))
+
+    def test_current_commit_marker_is_unchanged_when_cache_write_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            config_dir = Path(tmp) / "config"
+            config_dir.mkdir()
+            current_path = config_dir / "current.json"
+            current_path.write_text('{"topic":"previous"}\n', encoding="utf-8")
+            original_atomic_write = cli.state.atomic_write_json
+
+            def fail_cache(path, payload):
+                if Path(path).name == "last-report.json":
+                    raise OSError("synthetic cache failure")
+                return original_atomic_write(path, payload)
+
+            with mock.patch.object(cli.env, "CONFIG_DIR", config_dir), \
+                 mock.patch.object(cli.state, "atomic_write_json", side_effect=fail_cache):
+                self.assertFalse(cli._write_last_run("OpenClaw", _report("OpenClaw")))
+
+            self.assertEqual({"topic": "previous"}, json.loads(current_path.read_text()))
 
     def test_last_report_cache_round_trips_single_report(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -320,6 +369,36 @@ class LastRunStateTests(unittest.TestCase):
 
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn('Last run: "custom hook query"', result.stdout)
+
+    @unittest.skipIf(shutil.which("bash") is None, "bash not available")
+    def test_hook_prefers_authoritative_current_state(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            config_dir = Path(tmp) / "custom-config"
+            config_dir.mkdir()
+            timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+            (config_dir / "last-run.json").write_text(
+                json.dumps({"topic": "legacy topic", "timestamp": timestamp, "total": 1})
+            )
+            (config_dir / "current.json").write_text(
+                json.dumps({"topic": "current topic", "timestamp": timestamp, "total": 2})
+            )
+            env = os.environ.copy()
+            env["HOME"] = str(Path(tmp) / "home")
+            env["SETUP_COMPLETE"] = "true"
+            env["LAST30DAYS_CONFIG_DIR"] = str(config_dir)
+
+            result = subprocess.run(
+                ["bash", "hooks/scripts/check-config.sh"],
+                cwd=REPO_ROOT,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertIn('Last run: "current topic"', result.stdout)
+            self.assertNotIn("legacy topic", result.stdout)
 
     def test_hook_exits_0_when_no_last_run(self):
         """Script exits 0 when ScrapeCreators configured but no prior run (last-run.json absent)."""

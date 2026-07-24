@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import io
 import json
+import subprocess
 import sys
 from contextlib import redirect_stderr, redirect_stdout
+from pathlib import Path
 from unittest import mock
 
 import last30days as cli
@@ -201,6 +203,31 @@ def test_cli_preflight_uses_plan_only_policy_and_does_not_run_research(monkeypat
     diagnose.assert_called_once()
     assert "last30days preflight" in stdout.getvalue()
     assert "Local writes:" in stdout.getvalue()
+
+
+def test_cli_preflight_is_zero_write_in_real_subprocess(tmp_path):
+    config_dir = tmp_path / "must-not-be-created"
+    script = Path(__file__).resolve().parents[1] / "skills" / "last30days" / "scripts" / "last30days.py"
+    process_env = {
+        "PATH": "",
+        "LAST30DAYS_CONFIG_DIR": str(config_dir),
+        "PYTHONDONTWRITEBYTECODE": "1",
+    }
+
+    result = subprocess.run(
+        [sys.executable, str(script), "--preflight", "--emit=json"],
+        cwd=tmp_path,
+        env=process_env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["quality_status"] == "PASS"
+    assert payload["local_writes"] == []
+    assert not config_dir.exists()
 
 
 def test_cli_preflight_reuses_embedded_preflight_without_save_overrides(monkeypatch):

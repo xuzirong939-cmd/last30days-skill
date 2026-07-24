@@ -52,6 +52,12 @@
       "sensitive": true
     },
     {
+      "name": "Paid Providers Allowlist",
+      "description": "Comma-separated providers explicitly permitted to use billable or quota-metered APIs, for example: openai,xai,scrapecreators",
+      "envVar": "LAST30DAYS_PAID_PROVIDERS",
+      "sensitive": false
+    },
+    {
       "name": "Twitter AUTH_TOKEN",
       "description": "Twitter browser AUTH_TOKEN cookie for direct X search (optional)",
       "envVar": "AUTH_TOKEN",
