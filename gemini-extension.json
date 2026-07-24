@@ -1,7 +1,7 @@
 {
   "name": "last30days-skill",
   "version": "3.10.0",
-  "description": "Research a topic from the last 30 days across Reddit, X, YouTube, TikTok, Instagram, Hacker News, Polymarket, and the web.",
+  "description": "Research recent public signals and mine full-market US equity narratives for Daily Market Desk and PushPlus workflows.",
   "settings": [
     {
       "name": "Extension Directory",

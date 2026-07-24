@@ -5,12 +5,12 @@
     "url": "https://github.com/xuzirong939-cmd"
   },
   "metadata": {
-    "description": "Marketplace hosting the last30days research plugin."
+    "description": "Marketplace hosting the last30days research plugin and US equity market push miner."
   },
   "plugins": [
     {
       "name": "last30days",
-      "description": "Research any topic across Reddit, X, YouTube, TikTok, Instagram, Hacker News, Polymarket, GitHub, and 5+ more sources. AI agent scores by upvotes, likes, and real money - not editors.",
+      "description": "Research recent public signals and mine full-market US equity narratives for Daily Market Desk and PushPlus workflows.",
       "version": "3.10.0",
       "author": {
         "name": "Matt Van Horn",

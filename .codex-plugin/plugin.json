@@ -1,7 +1,7 @@
 {
   "name": "last30days",
   "version": "3.10.0",
-  "description": "Research any topic across Reddit, X, YouTube, TikTok, Instagram, Hacker News, Polymarket, GitHub, and the web.",
+  "description": "Research recent public signals and mine full-market US equity narratives for Daily Market Desk and PushPlus workflows.",
   "author": {
     "name": "Matt Van Horn",
     "email": "mvanhorn@gmail.com",
@@ -25,13 +25,19 @@
     "perplexity",
     "threads",
     "pinterest",
-    "hacker-news"
+    "hacker-news",
+    "us-equities",
+    "ibkr",
+    "futu",
+    "pushplus",
+    "market-desk",
+    "stock-alerts"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "last30days",
-    "shortDescription": "Research what people are saying about a topic now.",
-    "longDescription": "last30days adds a Codex skill for researching any topic based on recent discussion and engagement signals across Reddit, X, YouTube, TikTok, Instagram, Hacker News, Polymarket, GitHub, and the web.",
+    "shortDescription": "Mine full-market US equity signals.",
+    "longDescription": "last30days now includes a Codex skill for scanning full-market US equity signals across Reddit, X-like social sources, YouTube, Hacker News, Polymarket, GitHub, and the web, then shaping the result into Daily Market Desk and PushPlus mobile action cards.",
     "developerName": "Matt Van Horn",
     "category": "Research",
     "capabilities": [
@@ -41,9 +47,9 @@
     ],
     "websiteURL": "https://github.com/xuzirong939-cmd/last30days-skill",
     "defaultPrompt": [
-      "TikTok shop trends",
-      "Codex vs Cursor",
-      "best travel credit cards"
+      "Use $us-equity-market-push-miner to scan full-market US equity signals and draft a PushPlus action card",
+      "Mine Reddit, X, YouTube, HN, Polymarket, GitHub, and web signals for today's US market desk",
+      "Run a premarket US equity water-temperature scan and separate allowed from blocked actions"
     ],
     "brandColor": "#6F42C1"
   }
